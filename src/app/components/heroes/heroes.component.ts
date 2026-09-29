@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Hero } from '@app/models/hero';
 
 @Component({
   selector: 'app-heroes',
@@ -7,7 +8,7 @@ import { Component } from '@angular/core';
   styleUrl: './heroes.component.scss',
 })
 export class HeroesComponent {
-  heroes: string[] = [];
+  heroes: Hero[] = [];
 
   add(name: string): void {
     name = name.trim();
@@ -15,6 +16,6 @@ export class HeroesComponent {
       return;
     }
 
-    this.heroes.push(name);
+    this.heroes.push({ name });
   }
 }

@@ -22,7 +22,7 @@ describe('HeroesComponent', () => {
   });
 
   it('should render each hero in the list', () => {
-    component.heroes = ['Windstorm', 'Bombasto'];
+    component.heroes = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
     fixture.detectChanges();
 
     const renderedHeroes = Array.from(
@@ -36,13 +36,13 @@ describe('HeroesComponent', () => {
   it('should add a hero', () => {
     component.add('Windstorm');
 
-    expect(component.heroes).toEqual(['Windstorm']);
+    expect(component.heroes).toEqual([{ name: 'Windstorm' }]);
   });
 
   it('should trim whitespace from hero names', () => {
     component.add('  Windstorm  ');
 
-    expect(component.heroes).toEqual(['Windstorm']);
+    expect(component.heroes).toEqual([{ name: 'Windstorm' }]);
   });
 
   it('should ignore empty or whitespace-only names', () => {

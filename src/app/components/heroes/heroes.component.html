@@ -9,10 +9,4 @@
   </button>
 </div>
 
-<ul class="heroes">
-  @for (hero of heroes; track $index) {
-    <li>
-      <span>{{ hero.name }}</span>
-    </li>
-  }
-</ul>
+<app-heroes-list [heroes]="heroes" (deleteHero)="remove($event)"></app-heroes-list>

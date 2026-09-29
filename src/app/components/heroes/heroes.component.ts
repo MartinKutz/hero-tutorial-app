@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
+import { HeroesListComponent } from '@app/components/heroes-list/heroes-list.component';
 import { Hero } from '@app/models/hero';
 
 @Component({
   selector: 'app-heroes',
-  imports: [],
+  imports: [HeroesListComponent],
   templateUrl: './heroes.component.html',
   styleUrl: './heroes.component.scss',
 })
@@ -17,5 +18,9 @@ export class HeroesComponent {
     }
 
     this.heroes.push({ name });
+  }
+
+  remove(hero: Hero): void {
+    this.heroes = this.heroes.filter((currentHero) => currentHero !== hero);
   }
 }

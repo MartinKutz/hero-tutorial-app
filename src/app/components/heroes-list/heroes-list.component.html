@@ -1,0 +1,15 @@
+<ul class="heroes">
+  @for (hero of heroes(); track $index) {
+    <li>
+      <span>{{ hero.name }}</span>
+      <button
+        type="button"
+        class="delete-button"
+        [attr.aria-label]="'Delete ' + hero.name"
+        (click)="delete(hero)"
+      >
+        Delete
+      </button>
+    </li>
+  }
+</ul>

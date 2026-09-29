@@ -26,11 +26,30 @@ describe('HeroesComponent', () => {
     fixture.detectChanges();
 
     const renderedHeroes = Array.from(
-      nativeElement.querySelectorAll('.heroes li'),
+      nativeElement.querySelectorAll('.heroes li span'),
       (item) => item.textContent?.trim() ?? '',
     );
 
     expect(renderedHeroes).toEqual(['Windstorm', 'Bombasto']);
+  });
+
+  it('should delete a hero when its delete button is clicked', () => {
+    component.heroes = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+    fixture.detectChanges();
+
+    nativeElement.querySelector<HTMLButtonElement>('.delete-button')?.click();
+
+    expect(component.heroes).toEqual([{ name: 'Bombasto' }]);
+  });
+
+  it('should remove the selected hero and keep the others', () => {
+    const windstorm = { name: 'Windstorm' };
+    const bombasto = { name: 'Bombasto' };
+    component.heroes = [windstorm, bombasto];
+
+    component.remove(windstorm);
+
+    expect(component.heroes).toEqual([bombasto]);
   });
 
   it('should add a hero', () => {

@@ -1,4 +1,11 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Hero } from '@app/models/hero';
+import { HeroService } from '@app/services/hero.service';
+import { LoggingService } from '@app/services/logging.service';
+import { of, throwError } from 'rxjs';
+import type { Mock } from 'vitest';
 
 import { HeroesComponent } from './heroes.component';
 
@@ -7,9 +14,23 @@ describe('HeroesComponent', () => {
   let fixture: ComponentFixture<HeroesComponent>;
   let nativeElement: HTMLElement;
 
+  const mockHeroes: Hero[] = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+  let heroService: { getHeroes: Mock };
+  let logger: { log: Mock };
+
   beforeEach(async () => {
+    heroService = { getHeroes: vi.fn() };
+    heroService.getHeroes.mockReturnValue(of(mockHeroes));
+    logger = { log: vi.fn() };
+
     await TestBed.configureTestingModule({
       imports: [HeroesComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: HeroService, useValue: heroService },
+        { provide: LoggingService, useValue: logger },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroesComponent);
@@ -17,56 +38,72 @@ describe('HeroesComponent', () => {
     nativeElement = fixture.nativeElement as HTMLElement;
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    await fixture.whenStable();
     expect(component).toBeTruthy();
   });
 
-  it('should render each hero in the list', () => {
-    component.heroes = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
-    fixture.detectChanges();
-
-    const renderedHeroes = Array.from(
-      nativeElement.querySelectorAll('.heroes li span'),
-      (item) => item.textContent?.trim() ?? '',
-    );
-
-    expect(renderedHeroes).toEqual(['Windstorm', 'Bombasto']);
-  });
-
-  it('should delete a hero when its delete button is clicked', () => {
-    component.heroes = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+  it('should delete a hero when its delete button is clicked', async () => {
+    await fixture.whenStable();
+    component.heroes.set([{ name: 'Windstorm' }, { name: 'Bombasto' }]);
     fixture.detectChanges();
 
     nativeElement.querySelector<HTMLButtonElement>('.delete-button')?.click();
 
-    expect(component.heroes).toEqual([{ name: 'Bombasto' }]);
+    expect(component.heroes()).toEqual([{ name: 'Bombasto' }]);
   });
 
-  it('should remove the selected hero and keep the others', () => {
-    const windstorm = { name: 'Windstorm' };
-    const bombasto = { name: 'Bombasto' };
-    component.heroes = [windstorm, bombasto];
+  it('should remove the selected hero and keep the others', async () => {
+    await fixture.whenStable();
+    component.remove(mockHeroes[0]);
 
-    component.remove(windstorm);
-
-    expect(component.heroes).toEqual([bombasto]);
+    expect(component.heroes()).toEqual([mockHeroes[1]]);
   });
 
-  it('should add a hero', () => {
-    component.add('Windstorm');
+  it('should add a hero', async () => {
+    await fixture.whenStable();
+    component.add('Magneta');
 
-    expect(component.heroes).toEqual([{ name: 'Windstorm' }]);
+    expect(component.heroes().map((hero) => hero.name)).include('Magneta');
   });
 
-  it('should trim whitespace from hero names', () => {
-    component.add('  Windstorm  ');
+  it('should trim whitespace from hero names', async () => {
+    await fixture.whenStable();
+    component.add('  Magneta  ');
 
-    expect(component.heroes).toEqual([{ name: 'Windstorm' }]);
+    expect(component.heroes().map((hero) => hero.name)).contains('Magneta');
   });
 
-  it('should ignore empty or whitespace-only names', () => {
+  it('should ignore empty or whitespace-only names', async () => {
+    await fixture.whenStable();
     component.add('   ');
 
-    expect(component.heroes).toEqual([]);
+    expect(component.heroes()).toEqual(mockHeroes);
+  });
+
+  it('should load heroes from the service on init', async () => {
+    await fixture.whenStable();
+
+    expect(heroService.getHeroes).toHaveBeenCalledOnce();
+    expect(fixture.componentInstance.heroes()).toEqual(mockHeroes);
+  });
+
+  it('should render the loaded heroes', async () => {
+    await fixture.whenStable();
+
+    const renderedHeroes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.heroes li span'),
+      (item) => item.textContent?.trim() ?? '',
+    );
+    expect(renderedHeroes).toEqual(mockHeroes.map((hero) => hero.name));
+  });
+
+  it('should keep an empty list and log when loading fails', async () => {
+    heroService.getHeroes.mockReturnValue(throwError(() => 'Server error'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.heroes()).toEqual([]);
+    expect(logger.log).toHaveBeenCalledWith('Failed to load heroes: Server error');
   });
 });

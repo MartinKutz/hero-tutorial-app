@@ -9,4 +9,4 @@
   </button>
 </div>
 
-<app-heroes-list [heroes]="heroes" (deleteHero)="remove($event)"></app-heroes-list>
+<app-heroes-list [heroes]="heroes()" (deleteHero)="remove($event)"></app-heroes-list>

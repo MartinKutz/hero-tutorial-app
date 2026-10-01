@@ -27,7 +27,10 @@ describe('HeroService', () => {
   });
 
   it('should GET heroes from api/heroes', () => {
-    const mockHeroes: Hero[] = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+    const mockHeroes: Hero[] = [
+      { id: 11, name: 'Windstorm', classification: 'PUBLIC' },
+      { id: 12, name: 'Bombasto', classification: 'CLASSIFIED' },
+    ];
     let result: Hero[] | undefined;
 
     service.getHeroes().subscribe((heroes) => (result = heroes));

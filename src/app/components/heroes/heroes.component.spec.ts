@@ -14,7 +14,10 @@ describe('HeroesComponent', () => {
   let fixture: ComponentFixture<HeroesComponent>;
   let nativeElement: HTMLElement;
 
-  const mockHeroes: Hero[] = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+  const mockHeroes: Hero[] = [
+    { id: 11, name: 'Windstorm', classification: 'PUBLIC' },
+    { id: 12, name: 'Bombasto', classification: 'CLASSIFIED' },
+  ];
   let heroService: { getHeroes: Mock };
   let logger: { log: Mock };
 
@@ -45,12 +48,12 @@ describe('HeroesComponent', () => {
 
   it('should delete a hero when its delete button is clicked', async () => {
     await fixture.whenStable();
-    component.heroes.set([{ name: 'Windstorm' }, { name: 'Bombasto' }]);
+    component.heroes.set([...mockHeroes]);
     fixture.detectChanges();
 
     nativeElement.querySelector<HTMLButtonElement>('.delete-button')?.click();
 
-    expect(component.heroes()).toEqual([{ name: 'Bombasto' }]);
+    expect(component.heroes()).toEqual([mockHeroes[1]]);
   });
 
   it('should remove the selected hero and keep the others', async () => {
@@ -65,6 +68,24 @@ describe('HeroesComponent', () => {
     component.add('Magneta');
 
     expect(component.heroes().map((hero) => hero.name)).include('Magneta');
+  });
+
+  it('should assign a new hero an id that does not exist yet', async () => {
+    await fixture.whenStable();
+    component.add('Magneta');
+
+    const ids = component.heroes().map((hero) => hero.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(component.heroes().at(-1)).toEqual({ id: 13, name: 'Magneta' });
+  });
+
+  it('should assign id 1 when the list is empty', async () => {
+    await fixture.whenStable();
+    component.heroes.set([]);
+
+    component.add('Magneta');
+
+    expect(component.heroes()).toEqual([{ id: 1, name: 'Magneta' }]);
   });
 
   it('should trim whitespace from hero names', async () => {

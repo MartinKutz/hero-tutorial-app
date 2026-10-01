@@ -24,7 +24,10 @@ describe('HeroesListComponent', () => {
   });
 
   it('should render the hero names and accessible delete buttons', () => {
-    const heroes: Hero[] = [{ name: 'Windstorm' }, { name: 'Bombasto' }];
+    const heroes: Hero[] = [
+      { id: 11, name: 'Windstorm', classification: 'PUBLIC' },
+      { id: 12, name: 'Bombasto', classification: 'CLASSIFIED' },
+    ];
     fixture.componentRef.setInput('heroes', heroes);
     fixture.detectChanges();
 
@@ -42,8 +45,8 @@ describe('HeroesListComponent', () => {
   });
 
   it('should emit the selected hero when its delete button is clicked', () => {
-    const windstorm: Hero = { name: 'Windstorm' };
-    const bombasto: Hero = { name: 'Bombasto' };
+    const windstorm: Hero = { id: 11, name: 'Windstorm', classification: 'PUBLIC' };
+    const bombasto: Hero = { id: 12, name: 'Bombasto', classification: 'CLASSIFIED' };
     const emittedHeroes: Hero[] = [];
     component.deleteHero.subscribe((hero) => emittedHeroes.push(hero));
     fixture.componentRef.setInput('heroes', [windstorm, bombasto]);

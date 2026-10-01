@@ -34,12 +34,16 @@ export class HeroesComponent implements OnInit {
       return;
     }
 
-    this.heroes.update((heroes) => [...heroes, { name }]);
+    this.heroes.update((heroes) => [...heroes, { id: this.nextId(heroes), name }]);
     this.logger.log(`Added hero: ${name}`);
   }
 
+  private nextId(heroes: Hero[]): number {
+    return heroes.reduce((maxId, hero) => Math.max(maxId, hero.id), 0) + 1;
+  }
+
   remove(hero: Hero): void {
-    this.heroes.update((heroes) => heroes.filter((currentHero) => currentHero !== hero));
+    this.heroes.update((heroes) => heroes.filter((currentHero) => currentHero.id !== hero.id));
     this.logger.log(`Removed hero: ${hero.name}`);
   }
 }

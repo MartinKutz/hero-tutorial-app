@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { HeroesComponent } from './components/heroes/heroes.component';
+import { HeroesShellComponent } from './components/heroes-shell/heroes-shell.component';
 
 @Component({
   selector: 'app-root',
-  imports: [HeroesComponent],
+  imports: [HeroesShellComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

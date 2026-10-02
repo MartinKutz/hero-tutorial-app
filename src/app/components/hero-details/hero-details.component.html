@@ -1,0 +1,24 @@
+@if (hero(); as hero) {
+  <h3>{{ hero.name }} Details</h3>
+  <dl class="details">
+    <dt>Id</dt>
+    <dd>{{ hero.id }}</dd>
+
+    <dt>Name</dt>
+    <dd>{{ hero.name }}</dd>
+
+    @if (hero.classification) {
+      <dt>Classification</dt>
+      <dd>{{ hero.classification }}</dd>
+    }
+
+    @if (hero.description) {
+      <dt>Description</dt>
+      <dd>{{ hero.description }}</dd>
+    }
+  </dl>
+} @else {
+  <p class="not-found">Hero not found.</p>
+}
+
+<a routerLink="/" class="back-link">Back to list</a>

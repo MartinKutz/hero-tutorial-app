@@ -1,21 +1,20 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Hero } from '@app/models/hero';
+import { HeroService } from '@app/services/hero.service';
 
 @Component({
   selector: 'app-heroes-list',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './heroes-list.component.html',
   styleUrl: './heroes-list.component.scss',
 })
 export class HeroesListComponent {
-  readonly heroes = input<Hero[]>([]);
-  readonly deleteHero = output<Hero>();
+  private readonly heroService = inject(HeroService);
+
+  readonly heroes = this.heroService.heroes;
 
   delete(hero: Hero): void {
-    if (!hero) {
-      return;
-    }
-
-    this.deleteHero.emit(hero);
+    this.heroService.removeHero(hero);
   }
 }

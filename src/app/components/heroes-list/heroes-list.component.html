@@ -1,7 +1,7 @@
 <ul class="heroes">
-  @for (hero of heroes(); track $index) {
+  @for (hero of heroes(); track hero.id) {
     <li>
-      <span>{{ hero.name }}</span>
+      <a [routerLink]="['/heroes', hero.id]">{{ hero.name }}</a>
       <button
         type="button"
         class="delete-button"

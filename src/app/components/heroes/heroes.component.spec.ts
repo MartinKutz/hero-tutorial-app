@@ -38,7 +38,9 @@ describe('HeroesComponent', () => {
     fixture = TestBed.createComponent(HeroesComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -47,7 +49,6 @@ describe('HeroesComponent', () => {
 
   it('should render the heroes list', () => {
     expect(nativeElement.querySelector('app-heroes-list')?.textContent).toContain('Windstorm');
-    expect(component.heroes()).toEqual(mockHeroes);
   });
 
   it('should load heroes from the backend on init', () => {
@@ -55,6 +56,8 @@ describe('HeroesComponent', () => {
   });
 
   it('should add the entered hero name and clear the input', () => {
+    const updatedHeroes = [...mockHeroes, { id: 13, name: 'Magneta' }];
+    heroService.getHeroes.mockReturnValue(of(updatedHeroes));
     const input = nativeElement.querySelector<HTMLInputElement>('#new-hero')!;
     input.value = 'Magneta';
 
@@ -62,14 +65,20 @@ describe('HeroesComponent', () => {
 
     expect(heroService.addHero).toHaveBeenCalledWith('Magneta');
     expect(input.value).toBe('');
-    expect(component.heroes().at(-1)).toEqual({ id: 12, name: 'Magneta' });
+    expect(heroService.getHeroes).toHaveBeenCalledTimes(2);
+    fixture.detectChanges();
+    expect(nativeElement.querySelector('app-heroes-list')?.textContent).toContain('Magneta');
   });
 
   it('should remove the hero after the backend confirms deletion', () => {
+    heroService.getHeroes.mockReturnValue(of([mockHeroes[1]]));
     component.remove(mockHeroes[0]);
 
     expect(heroService.removeHero).toHaveBeenCalledWith(mockHeroes[0]);
-    expect(component.heroes()).toEqual([mockHeroes[1]]);
+    expect(heroService.getHeroes).toHaveBeenCalledTimes(2);
+    fixture.detectChanges();
+    expect(nativeElement.querySelector('app-heroes-list')?.textContent).not.toContain('Windstorm');
+    expect(nativeElement.querySelector('app-heroes-list')?.textContent).toContain('Bombasto');
   });
 
   it('should show and log a failure when adding a hero fails', () => {
@@ -83,5 +92,6 @@ describe('HeroesComponent', () => {
       'Failed to add hero: Server unavailable',
     );
     expect(logger.log).toHaveBeenCalledWith('Failed to add hero: Server unavailable');
+    expect(heroService.getHeroes).toHaveBeenCalledOnce();
   });
 });

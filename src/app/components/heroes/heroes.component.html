@@ -11,4 +11,4 @@
   <p role="alert">{{ error }}</p>
 }
 
-<app-heroes-list [heroes]="heroes()" (deleteHero)="remove($event)" />
+<app-heroes-list [heroes]="(heroes$ | async) ?? []" (deleteHero)="remove($event)" />

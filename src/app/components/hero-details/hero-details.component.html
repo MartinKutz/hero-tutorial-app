@@ -18,7 +18,11 @@
     }
   </dl>
 } @else {
-  <p class="not-found">Hero not found.</p>
+  @if (errorMessage(); as error) {
+    <p class="not-found" role="alert">{{ error }}</p>
+  } @else {
+    <p class="not-found">Hero not found.</p>
+  }
 }
 
 <a routerLink="/" class="back-link">Back to list</a>

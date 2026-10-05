@@ -1,8 +1,9 @@
-import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Hero } from '@app/models/hero';
 import { HeroService } from '@app/services/hero.service';
+import { LoggingService } from '@app/services/logging.service';
+import { of, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 
 import { HeroesComponent } from './heroes.component';
@@ -11,14 +12,27 @@ describe('HeroesComponent', () => {
   let component: HeroesComponent;
   let fixture: ComponentFixture<HeroesComponent>;
   let nativeElement: HTMLElement;
-  let heroService: { heroes: WritableSignal<Hero[]>; addHero: Mock };
+  let heroService: { getHeroes: Mock; addHero: Mock; removeHero: Mock };
+  const logger = { log: vi.fn() };
+  const mockHeroes: Hero[] = [
+    { id: 11, name: 'Windstorm' },
+    { id: 12, name: 'Bombasto' },
+  ];
 
   beforeEach(async () => {
-    heroService = { heroes: signal([{ id: 11, name: 'Windstorm' }]), addHero: vi.fn() };
+    heroService = {
+      getHeroes: vi.fn().mockReturnValue(of(mockHeroes)),
+      addHero: vi.fn().mockReturnValue(of({ id: 12, name: 'Magneta' })),
+      removeHero: vi.fn().mockReturnValue(of(undefined)),
+    };
 
     await TestBed.configureTestingModule({
       imports: [HeroesComponent],
-      providers: [provideRouter([]), { provide: HeroService, useValue: heroService }],
+      providers: [
+        provideRouter([]),
+        { provide: HeroService, useValue: heroService },
+        { provide: LoggingService, useValue: logger },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroesComponent);
@@ -33,6 +47,11 @@ describe('HeroesComponent', () => {
 
   it('should render the heroes list', () => {
     expect(nativeElement.querySelector('app-heroes-list')?.textContent).toContain('Windstorm');
+    expect(component.heroes()).toEqual(mockHeroes);
+  });
+
+  it('should load heroes from the backend on init', () => {
+    expect(heroService.getHeroes).toHaveBeenCalledOnce();
   });
 
   it('should add the entered hero name and clear the input', () => {
@@ -43,5 +62,26 @@ describe('HeroesComponent', () => {
 
     expect(heroService.addHero).toHaveBeenCalledWith('Magneta');
     expect(input.value).toBe('');
+    expect(component.heroes().at(-1)).toEqual({ id: 12, name: 'Magneta' });
+  });
+
+  it('should remove the hero after the backend confirms deletion', () => {
+    component.remove(mockHeroes[0]);
+
+    expect(heroService.removeHero).toHaveBeenCalledWith(mockHeroes[0]);
+    expect(component.heroes()).toEqual([mockHeroes[1]]);
+  });
+
+  it('should show and log a failure when adding a hero fails', () => {
+    const error = new Error('Server unavailable');
+    heroService.addHero.mockReturnValue(throwError(() => error));
+
+    component.add('Magneta');
+    fixture.detectChanges();
+
+    expect(nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Failed to add hero: Server unavailable',
+    );
+    expect(logger.log).toHaveBeenCalledWith('Failed to add hero: Server unavailable');
   });
 });

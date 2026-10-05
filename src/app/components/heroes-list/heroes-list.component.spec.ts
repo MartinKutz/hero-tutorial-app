@@ -1,9 +1,6 @@
-import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Hero } from '@app/models/hero';
-import { HeroService } from '@app/services/hero.service';
-import type { Mock } from 'vitest';
 
 import { HeroesListComponent } from './heroes-list.component';
 
@@ -11,17 +8,14 @@ describe('HeroesListComponent', () => {
   let component: HeroesListComponent;
   let fixture: ComponentFixture<HeroesListComponent>;
   let nativeElement: HTMLElement;
-  let heroService: { heroes: WritableSignal<Hero[]>; removeHero: Mock };
 
   const windstorm: Hero = { id: 11, name: 'Windstorm', classification: 'PUBLIC' };
   const bombasto: Hero = { id: 12, name: 'Bombasto', classification: 'CLASSIFIED' };
 
   beforeEach(async () => {
-    heroService = { heroes: signal([windstorm, bombasto]), removeHero: vi.fn() };
-
     await TestBed.configureTestingModule({
       imports: [HeroesListComponent],
-      providers: [provideRouter([]), { provide: HeroService, useValue: heroService }],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroesListComponent);
@@ -35,6 +29,9 @@ describe('HeroesListComponent', () => {
   });
 
   it('should render the hero names and accessible delete buttons', () => {
+    fixture.componentRef.setInput('heroes', [windstorm, bombasto]);
+    fixture.detectChanges();
+
     const renderedHeroes = Array.from(
       nativeElement.querySelectorAll('.heroes li a'),
       (item) => item.textContent?.trim() ?? '',
@@ -49,6 +46,9 @@ describe('HeroesListComponent', () => {
   });
 
   it('should link each hero name to its details page', () => {
+    fixture.componentRef.setInput('heroes', [windstorm, bombasto]);
+    fixture.detectChanges();
+
     const links = Array.from(nativeElement.querySelectorAll('.heroes li a'), (link) =>
       link.getAttribute('href'),
     );
@@ -56,9 +56,14 @@ describe('HeroesListComponent', () => {
     expect(links).toEqual(['/heroes/11', '/heroes/12']);
   });
 
-  it('should remove the selected hero when its delete button is clicked', () => {
+  it('should emit the selected hero when its delete button is clicked', () => {
+    const deletedHeroes: Hero[] = [];
+    component.deleteHero.subscribe((hero) => deletedHeroes.push(hero));
+    fixture.componentRef.setInput('heroes', [windstorm, bombasto]);
+    fixture.detectChanges();
+
     nativeElement.querySelector<HTMLButtonElement>('[aria-label="Delete Bombasto"]')?.click();
 
-    expect(heroService.removeHero).toHaveBeenCalledWith(bombasto);
+    expect(deletedHeroes).toEqual([bombasto]);
   });
 });
